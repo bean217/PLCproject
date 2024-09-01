@@ -6,38 +6,14 @@ package provided;
  */
 
 import java.util.Map;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class JottDFA {
 
-     /* JottDFA's transition function, which is hard-coded in to avoid needing to 
-      * waste time and resources on reading and constructing from a file */
-    // private static final HashMap<State, State[]> TRANSITIONS = new HashMap<>(){
-    //     {   //                                  0             1              2            3             4                5                6              7              8               9               10             11               12              13                14                15               16            17            18
-    //         put(State.START, new State[]{       State.START,  State.START,  State.Q1,     State.COMMA,  State.R_BRACKET, State.L_BRACKET, State.R_BRACE, State.L_BRACE, State.ASSIGN,   State.REL_OP_1, State.MATH_OP, State.SEMICOLON, State.Q2,       State.NUMBER_1,   State.ID_KEYWORD, State.COLON,     State.Q3,     State.Q4,     State.REJECT });
-    //         put(State.Q1, new State[]{          State.Q1,     State.START,  State.Q1,     State.Q1,     State.Q1,        State.Q1,        State.Q1,      State.Q1,      State.Q1,       State.Q1,       State.Q1,      State.Q1,        State.Q1,       State.Q1,         State.Q1,         State.Q1,        State.Q1,     State.Q1,     State.Q1 });
-    //         put(State.COMMA, new State[]{       State.REJECT, State.REJECT, State.REJECT, State.REJECT, State.REJECT,    State.REJECT,    State.REJECT,  State.REJECT,  State.REJECT,   State.REJECT,   State.REJECT,  State.REJECT,    State.REJECT,   State.REJECT,     State.REJECT,     State.REJECT,    State.REJECT, State.REJECT, State.REJECT });
-    //         put(State.R_BRACKET, new State[]{   State.REJECT, State.REJECT, State.REJECT, State.REJECT, State.REJECT,    State.REJECT,    State.REJECT,  State.REJECT,  State.REJECT,   State.REJECT,   State.REJECT,  State.REJECT,    State.REJECT,   State.REJECT,     State.REJECT,     State.REJECT,    State.REJECT, State.REJECT, State.REJECT });
-    //         put(State.L_BRACKET, new State[]{   State.REJECT, State.REJECT, State.REJECT, State.REJECT, State.REJECT,    State.REJECT,    State.REJECT,  State.REJECT,  State.REJECT,   State.REJECT,   State.REJECT,  State.REJECT,    State.REJECT,   State.REJECT,     State.REJECT,     State.REJECT,    State.REJECT, State.REJECT, State.REJECT });
-    //         put(State.R_BRACE, new State[]{     State.REJECT, State.REJECT, State.REJECT, State.REJECT, State.REJECT,    State.REJECT,    State.REJECT,  State.REJECT,  State.REJECT,   State.REJECT,   State.REJECT,  State.REJECT,    State.REJECT,   State.REJECT,     State.REJECT,     State.REJECT,    State.REJECT, State.REJECT, State.REJECT });
-    //         put(State.L_BRACE, new State[]{     State.REJECT, State.REJECT, State.REJECT, State.REJECT, State.REJECT,    State.REJECT,    State.REJECT,  State.REJECT,  State.REJECT,   State.REJECT,   State.REJECT,  State.REJECT,    State.REJECT,   State.REJECT,     State.REJECT,     State.REJECT,    State.REJECT, State.REJECT, State.REJECT });
-    //         put(State.ASSIGN, new State[]{      State.REJECT, State.REJECT, State.REJECT, State.REJECT, State.REJECT,    State.REJECT,    State.REJECT,  State.REJECT,  State.REL_OP_2, State.REJECT,   State.REJECT,  State.REJECT,    State.REJECT,   State.REJECT,     State.REJECT,     State.REJECT,    State.REJECT, State.REJECT, State.REJECT });
-    //         put(State.REL_OP_1, new State[]{    State.REJECT, State.REJECT, State.REJECT, State.REJECT, State.REJECT,    State.REJECT,    State.REJECT,  State.REJECT,  State.REL_OP_2, State.REJECT,   State.REJECT,  State.REJECT,    State.REJECT,   State.REJECT,     State.REJECT,     State.REJECT,    State.REJECT, State.REJECT, State.REJECT });
-    //         put(State.REL_OP_2, new State[]{    State.REJECT, State.REJECT, State.REJECT, State.REJECT, State.REJECT,    State.REJECT,    State.REJECT,  State.REJECT,  State.REJECT,   State.REJECT,   State.REJECT,  State.REJECT,    State.REJECT,   State.REJECT,     State.REJECT,     State.REJECT,    State.REJECT, State.REJECT, State.REJECT });
-    //         put(State.MATH_OP, new State[]{     State.REJECT, State.REJECT, State.REJECT, State.REJECT, State.REJECT,    State.REJECT,    State.REJECT,  State.REJECT,  State.REJECT,   State.REJECT,   State.REJECT,  State.REJECT,    State.REJECT,   State.REJECT,     State.REJECT,     State.REJECT,    State.REJECT, State.REJECT, State.REJECT });
-    //         put(State.SEMICOLON, new State[]{   State.REJECT, State.REJECT, State.REJECT, State.REJECT, State.REJECT,    State.REJECT,    State.REJECT,  State.REJECT,  State.REJECT,   State.REJECT,   State.REJECT,  State.REJECT,    State.REJECT,   State.REJECT,     State.REJECT,     State.REJECT,    State.REJECT, State.REJECT, State.REJECT });
-    //         put(State.Q2, new State[]{          State.REJECT, State.REJECT, State.REJECT, State.REJECT, State.REJECT,    State.REJECT,    State.REJECT,  State.REJECT,  State.REJECT,   State.REJECT,   State.REJECT,  State.REJECT,    State.REJECT,   State.NUMBER_2,   State.REJECT,     State.REJECT,    State.REJECT, State.REJECT, State.REJECT });
-    //         put(State.NUMBER_1, new State[]{    State.REJECT, State.REJECT, State.REJECT, State.REJECT, State.REJECT,    State.REJECT,    State.REJECT,  State.REJECT,  State.REJECT,   State.REJECT,   State.REJECT,  State.REJECT,    State.NUMBER_2, State.REJECT,     State.REJECT,     State.REJECT,    State.REJECT, State.REJECT, State.REJECT });
-    //         put(State.NUMBER_2, new State[]{    State.REJECT, State.REJECT, State.REJECT, State.REJECT, State.REJECT,    State.REJECT,    State.REJECT,  State.REJECT,  State.REJECT,   State.REJECT,   State.REJECT,  State.REJECT,    State.REJECT,   State.NUMBER_2,   State.REJECT,     State.REJECT,    State.REJECT, State.REJECT, State.REJECT });
-    //         put(State.ID_KEYWORD, new State[]{  State.REJECT, State.REJECT, State.REJECT, State.REJECT, State.REJECT,    State.REJECT,    State.REJECT,  State.REJECT,  State.REJECT,   State.REJECT,   State.REJECT,  State.REJECT,    State.REJECT,   State.ID_KEYWORD, State.ID_KEYWORD, State.REJECT,    State.REJECT, State.REJECT, State.REJECT });
-    //         put(State.COLON, new State[]{       State.REJECT, State.REJECT, State.REJECT, State.REJECT, State.REJECT,    State.REJECT,    State.REJECT,  State.REJECT,  State.REJECT,   State.REJECT,   State.REJECT,  State.REJECT,    State.REJECT,   State.REJECT,     State.REJECT,     State.FC_HEADER, State.REJECT, State.REJECT, State.REJECT });
-    //         put(State.FC_HEADER, new State[]{   State.REJECT, State.REJECT, State.REJECT, State.REJECT, State.REJECT,    State.REJECT,    State.REJECT,  State.REJECT,  State.REJECT,   State.REJECT,   State.REJECT,  State.REJECT,    State.REJECT,   State.REJECT,     State.REJECT,     State.REJECT,    State.REJECT, State.REJECT, State.REJECT });
-    //         put(State.Q3, new State[]{          State.REJECT, State.REJECT, State.REJECT, State.REJECT, State.REJECT,    State.REJECT,    State.REJECT,  State.REJECT,  State.REL_OP_2, State.REJECT,   State.REJECT,  State.REJECT,    State.REJECT,   State.REJECT,     State.REJECT,     State.REJECT,    State.REJECT, State.REJECT, State.REJECT });
-    //         put(State.Q4, new State[]{          State.Q4,     State.REJECT, State.REJECT, State.REJECT, State.REJECT,    State.REJECT,    State.REJECT,  State.REJECT,  State.REJECT,   State.REJECT,   State.REJECT,  State.REJECT,    State.REJECT,   State.Q4,         State.Q4,         State.REJECT,    State.REJECT, State.STRING, State.REJECT });
-    //         put(State.STRING, new State[]{      State.REJECT, State.REJECT, State.REJECT, State.REJECT, State.REJECT,    State.REJECT,    State.REJECT,  State.REJECT,  State.REJECT,   State.REJECT,   State.REJECT,  State.REJECT,    State.REJECT,   State.REJECT,     State.REJECT,     State.REJECT,    State.REJECT, State.REJECT, State.REJECT });
-    //     }
-    // };
-    
+     /* JottDFA's states, which is hard-coded in (with transitions to avoid needing
+      * to waste time and resources on reading and constructing from a file */
     private static final Map<StateID, State> STATES = initializeJottDFA();
 
     private static Map<StateID, State> initializeJottDFA() {
@@ -153,7 +129,7 @@ public class JottDFA {
         return states;
     }
     
-
+    private State previousState;
     private State currentState;
     private StringBuilder currentToken;
 
@@ -172,43 +148,51 @@ public class JottDFA {
         return currentState;
     }
 
-    public StateID getCurrentStateID() {
-        return currentState.id;
+    public StateID getPreviousStateID() {
+        return previousState.id;
+    }
+
+    public String getPreviousExpectedNext() {
+        return previousState.getExpectedNext();
     }
 
     /**
      * Gets whether JottDFA is currently in an accepting state
      * @return
      */
-    public boolean isInAccept() {
-        return currentState.isAccept;
+    public boolean wasInAccept() {
+        return previousState.isAccept;
     }
 
     /**
      * Moves JottDFA to the next state based on a character c
      * @param c int representing the current character being processed
-     * @return Accepted token if current state is an accepting state and next state is undefined
+     * @return token string if token is recognized
+     *         null if token is rejected
+     *         empty string otherwise
      */
     public String getNextState(int c) {
-        // if current state is the start state
-        if (currentState.id == StateID.START) {
+
+        previousState = currentState;
+
+        currentState = currentState.getNextState(getCharClass(c));
+
+        if (currentState == null) {
+            // handle reject
+            // get rejected token
+            String token = currentToken.toString();
+            // reset JottDFA to start state
+            currentState = STATES.get(StateID.START);
             // clear the current token
             currentToken.setLength(0);
-        }
-
-        State nextState = currentState.getNextState(getCharClass(c));
-
-        if (nextState == null) {
-            // get the accepted token if the current state is an accept state
-            String token = (currentState.isAccept) ? currentToken.toString() : null;
-            // move back to the start state
-            this.currentState = STATES.get(StateID.START);
+            // return the token
             return token;
         } else {
+            // continue processing characters
+            // clear tokens if current state is the start state
+            if (currentState.id == StateID.START) currentToken.setLength(0);
             // append character to current token
             currentToken.append((char)c);
-            // move to the next state
-            currentState = nextState;
             // no token accepted yet, so return null
             return null;
         }
@@ -305,10 +289,6 @@ public class JottDFA {
             delta = new HashMap<>();
         }
 
-        public String getName() {
-            return id.name();
-        }
-
         private State getNextState(CharClass cc) {
             return delta.get(cc);
         }
@@ -316,28 +296,45 @@ public class JottDFA {
         private void put(CharClass cc, State state) {
             delta.put(cc, state);
         }
+
+        private String getExpectedNext() {
+            StringBuilder expectedNext = new StringBuilder();
+            List<CharClass> ccs = new ArrayList<>(delta.keySet());
+            int numCCs = ccs.size();
+            for (int i = 0; i < ccs.size(); i++) {
+                expectedNext.append(ccs.get(i).description);
+                if (i < numCCs-1) expectedNext.append(", ");
+            }
+            return expectedNext.toString();
+        }
     }
 
     private enum CharClass {
-        WHITESPACE,
-        NEWLINE,
-        POUND,
-        COMMA,
-        R_BRACKET,
-        L_BRACKET,
-        R_BRACE,
-        L_BRACE,
-        ASSIGN,
-        REL_OP,
-        MATH_OP,
-        SEMICOLON,
-        PERIOD,
-        DIGIT,
-        LETTER,
-        COLON,
-        BANG,
-        QUOTE,
-        INVALID
+        WHITESPACE("whitespace"),
+        NEWLINE("newline"),
+        POUND("#"),
+        COMMA(","),
+        R_BRACKET("]"),
+        L_BRACKET("["),
+        R_BRACE("}"),
+        L_BRACE("{"),
+        ASSIGN("="),
+        REL_OP("<>"),
+        MATH_OP("+/-*"),
+        SEMICOLON(";"),
+        PERIOD("."),
+        DIGIT("digit"),
+        LETTER("letter"),
+        COLON(":"),
+        BANG("!"),
+        QUOTE("\""),
+        INVALID("valid char");
+
+        private String description;
+
+        private CharClass(String description) {
+            this.description = description;
+        }
     }
     
 }
