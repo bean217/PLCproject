@@ -3,7 +3,8 @@ package provided;
 /**
  * @file: JottDFA.java
  * @description: Implementation of a DFA for tokening
- */
+ * @author Benjamin Piro, brp8396@rit.edu
+ **/
 
 import java.util.Map;
 import java.util.ArrayList;
@@ -12,13 +13,15 @@ import java.util.List;
 
 public class JottDFA {
 
-     /* JottDFA's states, which is hard-coded in (with transitions to avoid needing
+     /* JottDFA's start state, which is hard-coded in with transitions to avoid needing
       * to waste time and resources on reading and constructing from a file */
-    private static final Map<StateID, State> STATES = initializeJottDFA();
+    private static final State START = initializeJottDFA();
 
-    private static Map<StateID, State> initializeJottDFA() {
-        Map<StateID, State> states = new HashMap<>();
-
+    /**
+     * Static method for initializing JottDFA states and transitions
+     * @return JottDFA's start state
+     */
+    private static State initializeJottDFA() {
         // initialize states
         State START = new State(StateID.START, false);
         State COMMENT = new State(StateID.COMMENT, false);
@@ -41,29 +44,6 @@ public class JottDFA {
         State BANG = new State(StateID.BANG, false);
         State QUOTE = new State(StateID.QUOTE, false);
         State STRING = new State(StateID.STRING, true);
-
-        // Add states to STATES Map
-        states.put(START.id, START);
-        states.put(COMMENT.id, COMMENT);
-        states.put(COMMA.id, COMMA);
-        states.put(R_BRACKET.id, R_BRACKET);
-        states.put(L_BRACKET.id, L_BRACKET);
-        states.put(R_BRACE.id, R_BRACE);
-        states.put(L_BRACE.id, L_BRACE);
-        states.put(ASSIGN.id, ASSIGN);
-        states.put(REL_OP_1.id, REL_OP_1);
-        states.put(REL_OP_2.id, REL_OP_2);
-        states.put(MATH_OP.id, MATH_OP);
-        states.put(SEMICOLON.id, SEMICOLON);
-        states.put(PERIOD.id, PERIOD);
-        states.put(NUMBER_1.id, NUMBER_1);
-        states.put(NUMBER_2.id, NUMBER_2);
-        states.put(ID_KEYWORD.id, ID_KEYWORD);
-        states.put(COLON.id, COLON);
-        states.put(FC_HEADER.id, FC_HEADER);
-        states.put(BANG.id, BANG);
-        states.put(QUOTE.id, QUOTE);
-        states.put(STRING.id, STRING);
 
         // START state transitions
         START.put(CharClass.WHITESPACE, START); 
@@ -106,6 +86,8 @@ public class JottDFA {
         COMMENT.put(CharClass.INVALID, COMMENT);
         // ASSIGN state transitions
         ASSIGN.put(CharClass.ASSIGN, REL_OP_2);
+        // REL_OP_1 state transitions
+        REL_OP_1.put(CharClass.ASSIGN, REL_OP_2);
         // PERIOD state transitions
         PERIOD.put(CharClass.DIGIT, NUMBER_2);
         // NUMBER_1 state transitions
@@ -126,92 +108,68 @@ public class JottDFA {
         QUOTE.put(CharClass.LETTER, QUOTE);
         QUOTE.put(CharClass.QUOTE, STRING);
 
-        return states;
+        return START;
     }
     
-    private State previousState;
-    private State currentState;
-    private StringBuilder currentToken;
+    // Previous state
+    private State previousState = START;
+    // Current state
+    private State currentState = START;
 
-    public JottDFA() {
-        // previousState is initially null
-        // current state is initally the start state
-        this.currentState = STATES.get(StateID.START);
-        this.currentToken = new StringBuilder();
+    /**
+     * Indicates if JottDFA is currently in the start state
+     * @return true if current state is start state
+     */
+    public boolean isInStartState() {
+        return currentState.id == StateID.START;
     }
 
     /**
-     * Gets the current state of JottDFA and returns it
-     * @return current State enum value of JottDFA
+     * Getter for previous state's ID
+     * @return previous state's StateID enum
      */
-    public State getCurrentState() {
-        return currentState;
-    }
-
     public StateID getPreviousStateID() {
         return previousState.id;
     }
 
-    public String getPreviousExpectedNext() {
+    /**
+     * Gets string representation of the expected next symbol(s)
+     * from the previous state
+     * @return String reprentation of next symbol(s)
+     */
+    public String getExpectedNext() {
         return previousState.getExpectedNext();
     }
 
     /**
-     * Gets whether JottDFA is currently in an accepting state
-     * @return
+     * Gets whether JottDFA was previously in an accepting state
+     * @return previous state's isAccept value
      */
     public boolean wasInAccept() {
         return previousState.isAccept;
     }
 
     /**
-     * Moves JottDFA to the next state based on a character c
+     * Moves JottDFA to the next state based on a character c. If the transition
+     * rule is undefined, then JottDFA is moved back to the start state, and c must
+     * be processed again on a subsequent call.
      * @param c int representing the current character being processed
-     * @return token string if token is recognized
-     *         null if token is rejected
-     *         empty string otherwise
+     * @return true if transition is defined, false otherwise
      */
-    public String getNextState(int c) {
-
-        // TODO: REWRITE THIS METHOD!!!
-
-        System.out.println(String.format("%s\t\t%s\t%d", currentState.id, (char)c, c));
-
+    public boolean getNextState(int c) {
+        previousState = currentState;
+        // get next state
         State nextState = currentState.getNextState(getCharClass(c)); 
-        System.out.println(String.format("\t\t\t%s\t%s", previousState == null ? null : previousState.id, currentState == null ? null : currentState.id));
 
+        // check if state transition is defined
         if (nextState == null) {
-            // handle reject
-            // get rejected token
-            String token = currentToken.toString();
-            // set previous state to current state
-            previousState = currentState;
-            // reset JottDFA to start state and navigate 
-            currentState = STATES.get(StateID.START);
-            // clear the current token
-            currentToken.setLength(0);
-            // append the current character to current token
-            currentToken.append((char)c);
-            System.out.println(String.format("\t\t\t%s\t%s", previousState == null ? null : previousState.id, currentState == null ? null : currentState.id));
-
-        
-            // return the token
-            return token;
+            // invalid transition; go to start state and return false
+            currentState = START;
+            return false;
         } else {
-            // continue processing characters
-            // set previous state to current state
-            previousState = currentState;
-            // move JottDFA to next state
+            // valid transition; go to next state and return true
             currentState = nextState;
-            // clear tokens if current state is the start state
-            if (currentState.id == StateID.START) currentToken.setLength(0);
-            // append character to current token
-            currentToken.append((char)c);
-            System.out.println(String.format("\t\t\t%s\t%s", previousState == null ? null : previousState.id, currentState == null ? null : currentState.id));
-
-        
-            // no token accepted yet, so return null
-            return null;
+            return true;
         }
     }
 
@@ -289,6 +247,11 @@ public class JottDFA {
         STRING
     }
 
+    /**
+     * Represents a JottDFA state node.
+     * Encapsulates a traditional DFA state with a name/id, whether state is an accept,
+     * and next state transitions based on accepted character classes.
+     */
     private static class State {
 
         // Represents state name
@@ -306,15 +269,33 @@ public class JottDFA {
             delta = new HashMap<>();
         }
 
+        /**
+         * Gets next state based on an input character class.
+         * @param cc CharClass of character being processed
+         * @return State object of the next state, or null if transition undefined
+         */
         private State getNextState(CharClass cc) {
             return delta.get(cc);
         }
 
+        /**
+         * Adds a new state transition.
+         * @param cc CharClass leading to the next state
+         * @param state Next state
+         */
         private void put(CharClass cc, State state) {
             delta.put(cc, state);
         }
 
+        /**
+         * Gets a description for valid transition symbols.
+         * @return String of valid transition symbol description
+         */
         private String getExpectedNext() {
+            // if this is the start state, descriptor is unique
+            if (id == StateID.START) return "<valid symbol>";
+
+            // build description based on character classes in delta
             StringBuilder expectedNext = new StringBuilder();
             List<CharClass> ccs = new ArrayList<>(delta.keySet());
             int numCCs = ccs.size();
@@ -326,9 +307,12 @@ public class JottDFA {
         }
     }
 
+    /**
+     * Represents class encoding of characters
+     */
     private enum CharClass {
-        WHITESPACE("whitespace"),
-        NEWLINE("newline"),
+        WHITESPACE("<whitespace>"),
+        NEWLINE("<newline>"),
         POUND("#"),
         COMMA(","),
         R_BRACKET("]"),
@@ -340,13 +324,14 @@ public class JottDFA {
         MATH_OP("+/-*"),
         SEMICOLON(";"),
         PERIOD("."),
-        DIGIT("digit"),
-        LETTER("letter"),
+        DIGIT("<digit>"),
+        LETTER("<letter>"),
         COLON(":"),
         BANG("!"),
         QUOTE("\""),
-        INVALID("valid char");
+        INVALID("<invalid symbol>");
 
+        // Represents description of character class
         private String description;
 
         private CharClass(String description) {

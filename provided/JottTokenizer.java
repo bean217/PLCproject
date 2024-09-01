@@ -7,13 +7,12 @@ package provided;
  **/
 
 import java.util.ArrayList;
-
-import provided.JottDFA.JottDFAException;
-
 import java.io.PushbackReader;
 import java.io.FileReader;
 import java.io.IOException;
 public class JottTokenizer {
+
+    private static final String SYNTAX_ERR_TEMPLATE = "Syntax Error\nInvalid token \"%s\". \"%s\" expects following \"%s\"\n%s:%d";
 
 	/**
      * Takes in a filename and tokenizes that file into Tokens
@@ -28,50 +27,54 @@ public class JottTokenizer {
         // Read character stream from file
         int lineNumber = 1;
         try (PushbackReader pbr = new PushbackReader(new FileReader(filename))) {
+            // current token being processed
+            StringBuilder token = new StringBuilder();
+            // read first character
             int c = pbr.read();
 
-            // Read character stream until the end of the file
-            // pbr returns -1 at the end of file stream
-            while (c != -1) {
+            while (true) {
                 // increment line number when a newline is read
                 if (c == '\n') lineNumber++;
                 // process character
-                processChar(c, lineNumber, filename, tokens, jdfa);
-                // read next character
-                c = pbr.read();
-            }
+                boolean result = jdfa.getNextState(c);
 
-            // EOF reached, check for last token (if it exists)
-            processChar(c, lineNumber, filename, tokens, jdfa);
+                if (!result) {
+                    // entered invalid state; check for valid token
+                    if (jdfa.wasInAccept()) {
+                        // accept token
+                        tokens.add(new Token(token.toString(), filename, lineNumber, getTokenType(jdfa.getPreviousStateID())));
+                        // re-evaluate the current character if not EOF
+                        if (c == -1) break;
+                    } else {
+                        // reject token
+                        String tokenStr = token.isEmpty() ? "<empty>" : token.toString();
+                        // print syntax error message
+                        System.err.println(String.format(SYNTAX_ERR_TEMPLATE, tokenStr, tokenStr, jdfa.getExpectedNext(), filename, lineNumber));
+                        // tokenization failed, so return null
+                        return null;
+                    }
+                } else {
+                    // entered a valid state; append current character
+                    token.append((char)c);
+                    // and read next character
+                    c = pbr.read();
+                }
+
+                if (jdfa.isInStartState()) {
+                    // clear token if JottDFA is in the start state
+                    token.setLength(0);
+                }
+            }
 		    
             return tokens;
-        } catch(JottSyntaxException e) {
-            System.err.println(e.getMessage());
         } catch(IOException ioe) {
             // error opening .jott file
             System.err.println(String.format("Error opening file '%s'", filename));
         }
 
+        // Exception occurred, return null
         return null;
 	  }
-
-    private static void processChar(int c, int lineNumber, String filename, ArrayList<Token> tokens, JottDFA jdfa) {
-        // Set the current state of JottDFA to the next state based on c
-        String maybeToken = jdfa.getNextState(c);
-
-        if (maybeToken != null) {
-            boolean a = jdfa.wasInAccept();
-            if (jdfa.wasInAccept() && !maybeToken.isEmpty()) {
-                System.out.println("\t\t\tACCEPT");
-                // JottDFA recognized a token
-                tokens.add(
-                    new Token(maybeToken, filename, lineNumber, getTokenType(jdfa.getPreviousStateID()))
-                );
-            } else {
-                throw new JottSyntaxException(lineNumber, filename, maybeToken, jdfa.getPreviousExpectedNext());
-            }
-        }
-    }
 
     /**
      * Gets a token's type based on a JottDFA accept state
@@ -94,13 +97,5 @@ public class JottTokenizer {
         else if (state == JottDFA.StateID.ID_KEYWORD) return TokenType.ID_KEYWORD;
         else if (state == JottDFA.StateID.COLON) return TokenType.COLON;
         else return TokenType.STRING;
-    }
-
-    private static class JottSyntaxException extends RuntimeException {
-        private static final String MSG_TEMPLATE = "Syntax Error\nInvalid token \"%s\". \"%s\" expects following \"%s\"\n%s:%d";
-
-        private JottSyntaxException(int lineNumber, String filename, String token, String expectedNext) {
-            super(String.format(MSG_TEMPLATE, token, token, expectedNext, filename, lineNumber));
-        }
     }
 }
