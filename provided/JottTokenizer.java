@@ -60,7 +60,9 @@ public class JottTokenizer {
         String maybeToken = jdfa.getNextState(c);
 
         if (maybeToken != null) {
-            if (jdfa.wasInAccept()) {
+            boolean a = jdfa.wasInAccept();
+            if (jdfa.wasInAccept() && !maybeToken.isEmpty()) {
+                System.out.println("\t\t\tACCEPT");
                 // JottDFA recognized a token
                 tokens.add(
                     new Token(maybeToken, filename, lineNumber, getTokenType(jdfa.getPreviousStateID()))

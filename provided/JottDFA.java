@@ -173,26 +173,43 @@ public class JottDFA {
      */
     public String getNextState(int c) {
 
-        previousState = currentState;
+        // TODO: REWRITE THIS METHOD!!!
 
-        currentState = currentState.getNextState(getCharClass(c));
+        System.out.println(String.format("%s\t\t%s\t%d", currentState.id, (char)c, c));
 
-        if (currentState == null) {
+        State nextState = currentState.getNextState(getCharClass(c)); 
+        System.out.println(String.format("\t\t\t%s\t%s", previousState == null ? null : previousState.id, currentState == null ? null : currentState.id));
+
+        if (nextState == null) {
             // handle reject
             // get rejected token
             String token = currentToken.toString();
-            // reset JottDFA to start state
+            // set previous state to current state
+            previousState = currentState;
+            // reset JottDFA to start state and navigate 
             currentState = STATES.get(StateID.START);
             // clear the current token
             currentToken.setLength(0);
+            // append the current character to current token
+            currentToken.append((char)c);
+            System.out.println(String.format("\t\t\t%s\t%s", previousState == null ? null : previousState.id, currentState == null ? null : currentState.id));
+
+        
             // return the token
             return token;
         } else {
             // continue processing characters
+            // set previous state to current state
+            previousState = currentState;
+            // move JottDFA to next state
+            currentState = nextState;
             // clear tokens if current state is the start state
             if (currentState.id == StateID.START) currentToken.setLength(0);
             // append character to current token
             currentToken.append((char)c);
+            System.out.println(String.format("\t\t\t%s\t%s", previousState == null ? null : previousState.id, currentState == null ? null : currentState.id));
+
+        
             // no token accepted yet, so return null
             return null;
         }
