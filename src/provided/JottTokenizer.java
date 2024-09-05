@@ -81,7 +81,7 @@ public class JottTokenizer {
 
         // Exception occurred, return null
         return null;
-	  }
+    }
 
     /**
      * Gets a token's type based on a JottDFA accept state
