@@ -33,11 +33,7 @@ public class JottTokenizer {
             StringBuilder token = new StringBuilder();
             // read first character
             int c = pbr.read();
-            // boolean to indicate if the current character is being reprocessed; occurs after a token is accepted
-            boolean reprocessChar = false;
             while (true) {
-                // increment line number when a newline is read, but only the first time it is read
-                if (c == '\n' && !reprocessChar) lineNumber++;
                 // process character
                 boolean result = jdfa.getNextState(c);
 
@@ -48,8 +44,6 @@ public class JottTokenizer {
                         tokens.add(new Token(token.toString(), filename, lineNumber, getTokenType(jdfa.getPreviousStateID())));
                         // re-evaluate the current character if not EOF
                         if (c == -1) break;
-                        // indicate that the current character should be reprocessed
-                        reprocessChar = true;
                     } else {
                         // reject token
                         String tokenStr = token.isEmpty() ? "<empty>" : token.toString();
@@ -61,10 +55,10 @@ public class JottTokenizer {
                 } else {
                     // entered a valid state; append current character
                     token.append((char)c);
+                    // increment the line count if c is a newline
+                    if (c == '\n') lineNumber++;
                     // and read next character
                     c = pbr.read();
-                    // indicate that the previous character is not being reprocessed
-                    reprocessChar = false;
                 }
 
                 if (jdfa.isInStartState()) {
@@ -103,6 +97,7 @@ public class JottTokenizer {
         else if (state == JottDFA.StateID.NUMBER_1 || state == JottDFA.StateID.NUMBER_2) return TokenType.NUMBER;
         else if (state == JottDFA.StateID.ID_KEYWORD) return TokenType.ID_KEYWORD;
         else if (state == JottDFA.StateID.COLON) return TokenType.COLON;
+        else if (state == JottDFA.StateID.FC_HEADER) return TokenType.FC_HEADER;
         else return TokenType.STRING;
     }
 }
