@@ -1,4 +1,4 @@
-package provided;
+package custom;
 
 /**
  * @file: JottDFA.java

@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.io.PushbackReader;
 import java.io.FileReader;
 import java.io.IOException;
+import custom.JottDFA;
+
 public class JottTokenizer {
 
     private static final String SYNTAX_ERR_TEMPLATE = "Syntax Error\nInvalid token \"%s\". \"%s\" expects following \"%s\"\n%s:%d";
