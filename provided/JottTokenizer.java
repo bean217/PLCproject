@@ -31,10 +31,11 @@ public class JottTokenizer {
             StringBuilder token = new StringBuilder();
             // read first character
             int c = pbr.read();
-
+            // boolean to indicate if the current character is being reprocessed; occurs after a token is accepted
+            boolean reprocessChar = false;
             while (true) {
-                // increment line number when a newline is read
-                if (c == '\n') lineNumber++;
+                // increment line number when a newline is read, but only the first time it is read
+                if (c == '\n' && !reprocessChar) lineNumber++;
                 // process character
                 boolean result = jdfa.getNextState(c);
 
@@ -45,6 +46,8 @@ public class JottTokenizer {
                         tokens.add(new Token(token.toString(), filename, lineNumber, getTokenType(jdfa.getPreviousStateID())));
                         // re-evaluate the current character if not EOF
                         if (c == -1) break;
+                        // indicate that the current character should be reprocessed
+                        reprocessChar = true;
                     } else {
                         // reject token
                         String tokenStr = token.isEmpty() ? "<empty>" : token.toString();
@@ -58,6 +61,8 @@ public class JottTokenizer {
                     token.append((char)c);
                     // and read next character
                     c = pbr.read();
+                    // indicate that the previous character is not being reprocessed
+                    reprocessChar = false;
                 }
 
                 if (jdfa.isInStartState()) {
